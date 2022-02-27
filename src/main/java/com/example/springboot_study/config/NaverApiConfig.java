@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "naver.openapi")
-public class NaverProperties {
+public class NaverApiConfig {
 
     private String movieUrl;
     private String clientId;

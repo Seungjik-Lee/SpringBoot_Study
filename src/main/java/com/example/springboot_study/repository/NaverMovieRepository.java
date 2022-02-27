@@ -1,8 +1,7 @@
-package com.example.springboot_study.infrastructure;
+package com.example.springboot_study.repository;
 
-import com.example.springboot_study.config.NaverProperties;
+import com.example.springboot_study.config.NaverApiConfig;
 import com.example.springboot_study.domain.Movie;
-import com.example.springboot_study.domain.MovieRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
@@ -20,16 +19,16 @@ import java.util.stream.Collectors;
 public class NaverMovieRepository implements MovieRepository {
 
     private final RestTemplate restTemplate;
-    private final NaverProperties naverProperties;
+    private final NaverApiConfig naverApiConfig;
 
     @Override
     public List<Movie> findByTitle(String title) {
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("X-Naver-Client-Id", naverProperties.getClientId());
-        httpHeaders.add("X-Naver-Client-Secret", naverProperties.getClientSecret());
+        httpHeaders.add("X-Naver-Client-Id", naverApiConfig.getClientId());
+        httpHeaders.add("X-Naver-Client-Secret", naverApiConfig.getClientSecret());
 
-        String url = naverProperties.getMovieUrl() + "?query=" + title;
+        String url = naverApiConfig.getMovieUrl() + "?query=" + title;
 
         return restTemplate.exchange(url, HttpMethod.GET, new HttpEntity(httpHeaders), ResponseMovie.class)
                 .getBody()
@@ -37,7 +36,11 @@ public class NaverMovieRepository implements MovieRepository {
                 .stream()
                 .map(m -> Movie.builder()
                         .title(m.getTitle())
-                        .Rating(m.userRating)
+                        .userRating(m.userRating)
+                        .image(m.image)
+                        .subtitle(m.subtitle)
+                        .director(m.director)
+                        .pubDate(m.pubDate)
                         .build())
                 .collect(Collectors.toList());
     }
@@ -51,6 +54,10 @@ public class NaverMovieRepository implements MovieRepository {
         public static class Item {
             String title;
             Float userRating;
+            private String image;
+            private String subtitle;
+            private String director;
+            private int pubDate;
         }
     }
 }
