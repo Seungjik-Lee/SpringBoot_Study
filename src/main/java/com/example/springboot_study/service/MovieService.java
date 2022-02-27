@@ -1,11 +1,14 @@
 package com.example.springboot_study.service;
 
 import com.example.springboot_study.domain.Movie;
-import com.example.springboot_study.domain.MovieRepository;
+import com.example.springboot_study.domain.MovieGroup;
+import com.example.springboot_study.exception.EmptyDataException;
+import com.example.springboot_study.exception.ResponseCode;
+import com.example.springboot_study.repository.MovieDTO;
+import com.example.springboot_study.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,10 +20,23 @@ public class MovieService {
 
     public List<MovieDTO> searchMovie(final String title) {
 
-        return movieRepository.findByTitle(title).stream()
-                .filter(movie -> movie.getRating() != 0.0f) // 평점이 0.0f이 아닌 데이터로 필터링
-                .sorted(Comparator.comparing(Movie::getRating).reversed()) // 평점이 높은 순으로 정렬
-                .map(MovieDTO::of)
+        List<Movie> movieList = movieRepository.findByTitle(title);
+        MovieGroup movieGroup = new MovieGroup(movieList);
+        List<Movie> movieGroupList = movieGroup.sortByUserRating();
+
+        if(movieGroupList.isEmpty()) {
+            throw new EmptyDataException(ResponseCode.NOT_FOUND);
+        }
+
+        return movieList.stream()
+                .map(m -> MovieDTO.builder()
+                        .title(m.getTitle())
+                        .userRating(m.getUserRating())
+                        .image(m.getImage())
+                        .subtitle(m.getSubtitle())
+                        .director(m.getDirector())
+                        .pubDate(m.getPubDate())
+                        .build())
                 .collect(Collectors.toList());
     }
 }
